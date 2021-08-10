@@ -44,7 +44,7 @@ func dResponseWriter(w http.ResponseWriter, data interface{}, HStat int) error {
 
 		_, err := w.Write([]byte(data.(string)))
 		return err
-	} else if reflect.PtrTo(reflect.TypeOf(reflect.Struct)) == dataType {
+	} else if reflect.PtrTo(dataType).Kind() == dataType.Kind() {
 		w.WriteHeader(HStat)
 		w.Header().Set("Content-Type", "application/json")
 
