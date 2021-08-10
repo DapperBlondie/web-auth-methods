@@ -9,6 +9,7 @@ import (
 
 var Repo *DBRepo
 
+// NewDB create new sqlite3 db for use by its name
 func NewDB(dsn string) (*DBRepo, error) {
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
@@ -27,6 +28,7 @@ func NewDB(dsn string) (*DBRepo, error) {
 	return Repo, nil
 }
 
+// PingingDB use for ping db
 func (dbr *DBRepo) PingingDB() error {
 	err := dbr.DB.Ping()
 	if err != nil {
@@ -36,6 +38,7 @@ func (dbr *DBRepo) PingingDB() error {
 	return nil
 }
 
+// CreateStatement use for creating *sql.Stmt for a specific query or statement
 func (dbr *DBRepo) CreateStatement(stat string, ctx context.Context) (*sql.Stmt, error) {
 	statement, err := dbr.DB.PrepareContext(ctx, stat)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// AppRoutes use for creating and managing routes of our application
 func AppRoutes() http.Handler {
 	mux := chi.NewRouter()
 

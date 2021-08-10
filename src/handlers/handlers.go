@@ -28,6 +28,7 @@ type Status struct {
 
 var Conf *AppConf
 
+// NewConfiguration use for creating a new configuration for our handlers
 func NewConfiguration(manager *scs.SessionManager, repo *repo.DBRepo) {
 	Conf = &AppConf{
 		ScsManager:   manager,
@@ -36,6 +37,7 @@ func NewConfiguration(manager *scs.SessionManager, repo *repo.DBRepo) {
 	}
 }
 
+// dResponseWriter use for writing response to the user
 func dResponseWriter(w http.ResponseWriter, data interface{}, HStat int) error {
 	dataType := reflect.TypeOf(data)
 	if dataType.Kind() == reflect.String {
@@ -75,6 +77,7 @@ func dResponseWriter(w http.ResponseWriter, data interface{}, HStat int) error {
 	return errors.New("we could not be able to support data type that you passed")
 }
 
+// CheckStatusHandler just for checking the API handlers
 func (conf *AppConf) CheckStatusHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, errors.New(http.MethodGet+" use this method").Error(), http.StatusMethodNotAllowed)
@@ -96,6 +99,7 @@ func (conf *AppConf) CheckStatusHandler(w http.ResponseWriter, r *http.Request) 
 	return
 }
 
+// SaveHmacToken use for saving HMAC token based on sha hash functions for user
 func (conf *AppConf) SaveHmacToken(w http.ResponseWriter, r *http.Request) {
 	var user *repo.DataModel = &repo.DataModel{}
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -116,6 +120,7 @@ func (conf *AppConf) SaveHmacToken(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// GetAndCheckHmacToken use for getting and checking the HMAC token that we store it in cookies
 func (conf *AppConf) GetAndCheckHmacToken(w http.ResponseWriter, r *http.Request) {
 	userEmail, ok := conf.ScsManager.Get(r.Context(), "user-mail").(string)
 	if !ok {
@@ -144,12 +149,14 @@ func (conf *AppConf) GetAndCheckHmacToken(w http.ResponseWriter, r *http.Request
 	return
 }
 
+// keyGeneratorByEmail a helper function for creating unique keys based on users emails
 func keyGeneratorByEmail(mail string) string {
 	key := uuid.FromBytesOrNil([]byte(mail))
 
 	return key.String()
 }
 
+// SignWithHmac use for creating HMAC tokens
 func (conf *AppConf) SignWithHmac(userMail string, key string) (string, error) {
 	h := hmac.New(conf.HashFunction, []byte(key))
 
