@@ -1,18 +1,24 @@
 package handlers
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/DapperBlondie/web-auth-methods/src/repo"
 	"github.com/alexedwards/scs/v2"
+	"github.com/gofrs/uuid"
+	"hash"
 	"log"
 	"net/http"
 	"reflect"
 )
 
 type AppConf struct {
-	ScsManager *scs.SessionManager
-	DRepo      *repo.DBRepo
+	ScsManager   *scs.SessionManager
+	DRepo        *repo.DBRepo
+	HashFunction func() hash.Hash
 }
 
 type Status struct {
@@ -24,8 +30,9 @@ var Conf *AppConf
 
 func NewConfiguration(manager *scs.SessionManager, repo *repo.DBRepo) {
 	Conf = &AppConf{
-		ScsManager: manager,
-		DRepo:      repo,
+		ScsManager:   manager,
+		DRepo:        repo,
+		HashFunction: sha256.New,
 	}
 }
 
@@ -87,4 +94,70 @@ func (conf *AppConf) CheckStatusHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	return
+}
+
+func (conf *AppConf) SaveHmacToken(w http.ResponseWriter, r *http.Request) {
+	var user *repo.DataModel = &repo.DataModel{}
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Error in parsing the body; "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	user.Key = keyGeneratorByEmail(user.Mail)
+	signToken, err := conf.SignWithHmac(user.Mail, user.Key)
+	if err != nil {
+		http.Error(w, err.Error()+"; in signing with hmac", http.StatusInternalServerError)
+		return
+	}
+
+	conf.ScsManager.Put(r.Context(), "hmac-token", signToken)
+	conf.ScsManager.Put(r.Context(), "user-mail", user.Mail)
+	return
+}
+
+func (conf *AppConf) GetAndCheckHmacToken(w http.ResponseWriter, r *http.Request) {
+	userEmail, ok := conf.ScsManager.Get(r.Context(), "user-mail").(string)
+	if !ok {
+		http.Error(w, "Something went wrong; ", http.StatusInternalServerError)
+		return
+	}
+
+	hmacToken, ok := conf.ScsManager.Get(r.Context(), "hmac-token").(string)
+	if !ok {
+		http.Error(w, "Something went wrong; ", http.StatusInternalServerError)
+		return
+	}
+
+	user := &repo.DataModel{
+		ID:        0,
+		Mail:      userEmail,
+		HmacToken: hmacToken,
+	}
+
+	err := dResponseWriter(w, user, http.StatusOK)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	return
+}
+
+func keyGeneratorByEmail(mail string) string {
+	key := uuid.FromBytesOrNil([]byte(mail))
+
+	return key.String()
+}
+
+func (conf *AppConf) SignWithHmac(userMail string, key string) (string, error) {
+	h := hmac.New(conf.HashFunction, []byte(key))
+
+	_, err := h.Write([]byte(userMail))
+	if err != nil {
+		log.Println(err.Error())
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
