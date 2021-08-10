@@ -16,10 +16,10 @@ type Status struct {
 	Message string `json:"message"`
 }
 
-var conf *AppConf
+var Conf *AppConf
 
 func NewConfiguration() {
-	conf = &AppConf{}
+	Conf = &AppConf{}
 }
 
 func dResponseWriter(w http.ResponseWriter, data interface{}, HStat int) error {
