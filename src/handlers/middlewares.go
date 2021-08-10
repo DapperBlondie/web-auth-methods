@@ -9,3 +9,7 @@ func (conf *AppConf) EnableCORS(next http.Handler) http.Handler {
 		return
 	})
 }
+
+func (conf *AppConf) LoadSession(next http.Handler) http.Handler {
+	return conf.ScsManager.LoadAndSave(next)
+}

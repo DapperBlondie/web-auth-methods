@@ -3,12 +3,14 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/alexedwards/scs/v2"
 	"log"
 	"net/http"
 	"reflect"
 )
 
 type AppConf struct {
+	ScsManager *scs.SessionManager
 }
 
 type Status struct {
@@ -18,8 +20,10 @@ type Status struct {
 
 var Conf *AppConf
 
-func NewConfiguration() {
-	Conf = &AppConf{}
+func NewConfiguration(manager *scs.SessionManager) {
+	Conf = &AppConf{
+		ScsManager: manager,
+	}
 }
 
 func dResponseWriter(w http.ResponseWriter, data interface{}, HStat int) error {
@@ -28,8 +32,8 @@ func dResponseWriter(w http.ResponseWriter, data interface{}, HStat int) error {
 		w.WriteHeader(HStat)
 		w.Header().Set("Content-Type", "application/text")
 
-		w.Write([]byte(data.(string)))
-		return nil
+		_, err := w.Write([]byte(data.(string)))
+		return err
 	} else if reflect.PtrTo(reflect.TypeOf(reflect.Struct)) == dataType {
 		w.WriteHeader(HStat)
 		w.Header().Set("Content-Type", "application/json")
@@ -41,8 +45,8 @@ func dResponseWriter(w http.ResponseWriter, data interface{}, HStat int) error {
 			return err
 		}
 
-		w.Write(outData)
-		return nil
+		_, err = w.Write(outData)
+		return err
 	} else if reflect.Struct == dataType.Kind() {
 		w.WriteHeader(HStat)
 		w.Header().Set("Content-Type", "application/json")
@@ -54,8 +58,8 @@ func dResponseWriter(w http.ResponseWriter, data interface{}, HStat int) error {
 			return err
 		}
 
-		w.Write(outData)
-		return nil
+		_, err = w.Write(outData)
+		return err
 	}
 
 	return errors.New("we could not be able to support data type that you passed")
