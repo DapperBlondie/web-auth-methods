@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 	"log"
 )
 

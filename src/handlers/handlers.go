@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/DapperBlondie/web-auth-methods/src/repo"
 	"github.com/alexedwards/scs/v2"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 type AppConf struct {
 	ScsManager *scs.SessionManager
+	DRepo      *repo.DBRepo
 }
 
 type Status struct {
@@ -20,9 +22,10 @@ type Status struct {
 
 var Conf *AppConf
 
-func NewConfiguration(manager *scs.SessionManager) {
+func NewConfiguration(manager *scs.SessionManager, repo *repo.DBRepo) {
 	Conf = &AppConf{
 		ScsManager: manager,
+		DRepo:      repo,
 	}
 }
 

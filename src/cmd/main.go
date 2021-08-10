@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/DapperBlondie/web-auth-methods/src/handlers"
+	"github.com/DapperBlondie/web-auth-methods/src/repo"
 	"github.com/DapperBlondie/web-auth-methods/src/routes"
 	"github.com/alexedwards/scs/v2"
 	"log"
@@ -18,7 +19,12 @@ func main() {
 	scsManager.Cookie.SameSite = http.SameSiteLaxMode
 	scsManager.Cookie.Secure = false
 
-	handlers.NewConfiguration(scsManager)
+	dbRepo, err := repo.NewDB("appdb.db")
+	if err != nil {
+		return
+	}
+
+	handlers.NewConfiguration(scsManager, dbRepo)
 
 	sigC := make(chan os.Signal, 1)
 	signal.Notify(sigC, os.Interrupt)
