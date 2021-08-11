@@ -48,3 +48,13 @@ func (dbr *DBRepo) CreateStatement(stat string, ctx context.Context) (*sql.Stmt,
 
 	return statement, err
 }
+
+func (dbr *DBRepo) DisposeFunction() error {
+	err := dbr.DB.Close()
+	if err != nil {
+		log.Fatal(err.Error())
+		return err
+	}
+
+	return nil
+}

@@ -23,6 +23,11 @@ func main() {
 	if err != nil {
 		return
 	}
+	err = dbRepo.CreateUserDataModelMethod()
+	if err != nil {
+		log.Fatal(err.Error())
+		return
+	}
 
 	handlers.NewConfiguration(scsManager, dbRepo)
 

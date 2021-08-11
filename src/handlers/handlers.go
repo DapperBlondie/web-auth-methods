@@ -115,6 +115,13 @@ func (conf *AppConf) SaveHmacToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	/*err = conf.DRepo.SaveUserWithHAMCMethod(user)
+	if err != nil {
+		log.Println(err.Error() + "; error in saving user in db")
+		http.Error(w, err.Error() + "; error in saving user in db", http.StatusInternalServerError)
+		return
+	}*/
+
 	conf.ScsManager.Put(r.Context(), "hmac-token", signToken)
 	conf.ScsManager.Put(r.Context(), "user-mail", user.Mail)
 	return
@@ -134,13 +141,20 @@ func (conf *AppConf) GetAndCheckHmacToken(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	userKey, err := conf.DRepo.GetUserByItsEmailMethod(userEmail)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
 	user := &repo.DataModel{
 		ID:        0,
 		Mail:      userEmail,
 		HmacToken: hmacToken,
+		Key:       userKey,
 	}
 
-	err := dResponseWriter(w, user, http.StatusOK)
+	err = dResponseWriter(w, user, http.StatusOK)
 	if err != nil {
 		log.Println(err.Error())
 		return
