@@ -115,12 +115,12 @@ func (conf *AppConf) SaveHmacToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	/*err = conf.DRepo.SaveUserWithHAMCMethod(user)
+	err = conf.DRepo.SaveUserWithHAMCMethod(user)
 	if err != nil {
 		log.Println(err.Error() + "; error in saving user in db")
-		http.Error(w, err.Error() + "; error in saving user in db", http.StatusInternalServerError)
+		http.Error(w, err.Error()+"; error in saving user in db", http.StatusInternalServerError)
 		return
-	}*/
+	}
 
 	conf.ScsManager.Put(r.Context(), "hmac-token", signToken)
 	conf.ScsManager.Put(r.Context(), "user-mail", user.Mail)
