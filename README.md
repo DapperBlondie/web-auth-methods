@@ -1,11 +1,14 @@
 # web-auth-methods
  A Web application for implementing JWT, HMAC and OAUTH2 functionalities
 
-## HAMC Signing Methods
+## HMAC Signing Methods
  I use a database model for saving and getting any request data and hmac token 
  associate with it known as DataModel in repo pkg.<br>
- use a helper function for creating a unique key based on their own emails.
- ```go
+ - I use a helper function for creating a unique key based on their own emails.
+ - I use two function for saving and getting HMAC token from session that stores in browser.
+ - You can find Everything About saving/getting or signing in the following peace of codes. 
+
+```go
 // keyGeneratorByEmail a helper function for creating unique keys based on users emails
 func keyGeneratorByEmail(mail string) string {
 	key := uuid.FromBytesOrNil([]byte(mail))
@@ -14,7 +17,6 @@ func keyGeneratorByEmail(mail string) string {
 }
  ```
 <br>
-I use two function for saving and getting HMAC token from session that stores in browser.
 
 ```go
 // SaveHmacToken use for saving HMAC token based on sha hash functions for user
