@@ -49,6 +49,7 @@ func (dbr *DBRepo) CreateStatement(stat string, ctx context.Context) (*sql.Stmt,
 	return statement, err
 }
 
+// DisposeFunction use for dispose sql.DB
 func (dbr *DBRepo) DisposeFunction() error {
 	err := dbr.DB.Close()
 	if err != nil {

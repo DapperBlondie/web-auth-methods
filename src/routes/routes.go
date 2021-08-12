@@ -13,7 +13,8 @@ func AppRoutes() http.Handler {
 	mux.Use(handlers.Conf.EnableCORS)
 	mux.Use(handlers.Conf.LoadSession)
 	mux.Get("/status", handlers.Conf.CheckStatusHandler)
-	mux.Get("/save-token", handlers.Conf.SaveHmacToken)
-	mux.Get("/get-token", handlers.Conf.GetAndCheckHmacToken)
+	mux.Get("/save-hmac-token", handlers.Conf.SaveHmacToken)
+	mux.Get("/get-hmac-token", handlers.Conf.GetAndCheckHmacToken)
+
 	return mux
 }

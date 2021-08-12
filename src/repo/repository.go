@@ -3,15 +3,21 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"github.com/dgrijalva/jwt-go"
 	"log"
 	"time"
 )
 
-// DBRepoFunctions holding our db functionalities schema we need to implement
-type DBRepoFunctions interface {
+// DBRepoHMAC holding our db functionalities schema we need to implement
+type DBRepoHMAC interface {
 	CreateUserDataModelMethod() error
 	SaveUserWithHAMCMethod(user *DataModel) error
-	GetUserByItsEmailMethod(um string) (string, error)
+	GetUserByItsEmailHMACMethod(um string) (string, error)
+}
+
+type UserClaims struct {
+	*jwt.StandardClaims
+	Email string
 }
 
 // DataModel for storing user stuff
@@ -27,6 +33,7 @@ type DBRepo struct {
 	DB *sql.DB
 }
 
+// CreateUserDataModelMethod use for creating DataModel for every user
 func (dbr *DBRepo) CreateUserDataModelMethod() error {
 	err := dbr.PingingDB()
 	if err != nil {
@@ -46,6 +53,7 @@ func (dbr *DBRepo) CreateUserDataModelMethod() error {
 	return nil
 }
 
+// SaveUserWithHAMCMethod use for save user with its associated key into Database
 func (dbr *DBRepo) SaveUserWithHAMCMethod(user *DataModel) error {
 	err := dbr.PingingDB()
 	if err != nil {
@@ -53,7 +61,7 @@ func (dbr *DBRepo) SaveUserWithHAMCMethod(user *DataModel) error {
 		return err
 	}
 
-	query := `INSERT INTO TABLE users_hmac (user_id, user_mail, user_key) VALUES 
+	query := `INSERT INTO users_hmac (user_id, user_mail, user_key) VALUES 
 (?, ?, ?)`
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*9)
 	defer cancel()
@@ -70,7 +78,8 @@ func (dbr *DBRepo) SaveUserWithHAMCMethod(user *DataModel) error {
 	return nil
 }
 
-func (dbr *DBRepo) GetUserByItsEmailMethod(um string) (string, error) {
+// GetUserByItsEmailHMACMethod use for getting user information by its email
+func (dbr *DBRepo) GetUserByItsEmailHMACMethod(um string) (string, error) {
 	err := dbr.PingingDB()
 	if err != nil {
 		log.Println(err.Error() + "; error occurred during pinging db.")

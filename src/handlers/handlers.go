@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"github.com/DapperBlondie/web-auth-methods/src/repo"
 	"github.com/alexedwards/scs/v2"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
 	"hash"
 	"log"
 	"net/http"
 	"reflect"
+	"time"
 )
 
 type AppConf struct {
@@ -141,7 +143,7 @@ func (conf *AppConf) GetAndCheckHmacToken(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	userKey, err := conf.DRepo.GetUserByItsEmailMethod(userEmail)
+	userKey, err := conf.DRepo.GetUserByItsEmailHMACMethod(userEmail)
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -161,6 +163,54 @@ func (conf *AppConf) GetAndCheckHmacToken(w http.ResponseWriter, r *http.Request
 	}
 
 	return
+}
+
+// SaveJWTToken use for store JWT token in scs.Session
+func (conf *AppConf) SaveJWTToken(w http.ResponseWriter, r *http.Request) {
+	var user *repo.DataModel = &repo.DataModel{}
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Error in parsing the body; "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	user.Key = keyGeneratorByEmail(user.Mail)
+
+	t := conf.CreateJWTToken(user)
+	conf.ScsManager.Put(r.Context(), "jwt-token", t)
+
+	err = dResponseWriter(w, user, http.StatusOK)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	return
+}
+
+// CreateJWTToken a helper function for creating JWT token
+func (conf *AppConf) CreateJWTToken(user *repo.DataModel) string {
+	claims := &repo.UserClaims{
+		StandardClaims: &jwt.StandardClaims{
+			Audience:  "localhost:8080",
+			ExpiresAt: time.Now().Add(time.Hour * 24).UnixNano(),
+			Id:        string(rune(user.ID)),
+			IssuedAt:  time.Now().UnixNano(),
+			Issuer:    "localhost:8080",
+			NotBefore: time.Now().UnixNano(),
+			Subject:   "Jwt token for login",
+		},
+		Email: user.Mail,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedT, err := token.SignedString(user.Key)
+	if err != nil {
+		log.Println(err.Error())
+		return ""
+	}
+
+	return signedT
 }
 
 // keyGeneratorByEmail a helper function for creating unique keys based on users emails
