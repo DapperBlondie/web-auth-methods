@@ -237,7 +237,7 @@ func (conf *AppConf) SaveJWTToken(w http.ResponseWriter, r *http.Request) {
 // ParseJWTToken use for parsing JWT token with claims
 func (conf *AppConf) ParseJWTToken(w http.ResponseWriter, r *http.Request) {
 	jt, ok := conf.ScsManager.Get(r.Context(), "jwt-token").(string)
-	key, ok := conf.ScsManager.Get(r.Context(), "jwt-token").(string)
+	key, ok := conf.ScsManager.Get(r.Context(), "user-key").(string)
 	if !ok {
 		http.Error(w, "Something Went Wrong", http.StatusInternalServerError)
 		return
@@ -252,6 +252,7 @@ func (conf *AppConf) ParseJWTToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Println(err.Error())
+		return
 	}
 
 	userClaims := jwtToken.Claims.(*repo.UserClaims)
