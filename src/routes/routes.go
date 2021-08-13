@@ -15,6 +15,8 @@ func AppRoutes() http.Handler {
 	mux.Get("/status", handlers.Conf.CheckStatusHandler)
 	mux.Get("/save-hmac-token", handlers.Conf.SaveHmacToken)
 	mux.Get("/get-hmac-token", handlers.Conf.GetAndCheckHmacToken)
+	mux.Get("/save-jwt-token", handlers.Conf.SaveJWTToken)
+	mux.Get("/parse-jwt-token", handlers.Conf.ParseJWTToken)
 
 	return mux
 }
